@@ -96,7 +96,7 @@ fi
 
 USH=$(awk -F: '$1 == "'$USER'" {print $7}' /etc/passwd)
 # ... if we got a command to execute, do so.
-[ -n "$SSH_ORIGINAL_COMMAND" ] && echo "$SSH_ORIGINAL_COMMAND" | exec $USH
+[ -n "$SSH_ORIGINAL_COMMAND" ] && exec $USH -c "$SSH_ORIGINAL_COMMAND"
 
 # Otherwise exec() the user's shell
 exec $USH
