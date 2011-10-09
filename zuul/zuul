@@ -1,0 +1,102 @@
+#!/bin/bash
+#
+# Copyright (c) 2011, Henrik Hallberg All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+#     * Redistributions of source code must retain the above copyright 
+#       notice,this list of conditions and the following disclaimer.
+# 
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer
+#       in the documentation and/or other materials provided with the
+#       distribution.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+# STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+# ===== Configuration ========================================================
+# 
+# These settings can be overridden in /etc/zuul.conf
+
+# Which characters are included in the OTP?
+CHARACTERS='0-9a-z'
+
+# How many characters should the OTP BE?
+LENGTH=4
+
+# Function to notify the OTP to the user. $1 is the OTP. This is the function
+# you redefine to e.g. send the OTP by SMS, email or whatever
+function notify_otp {
+    # Example OTP notification. Tries ASCII captcha using figlet, cowsay or
+    # plain text depending on what is available.
+    OTP="$1"
+
+    echo
+    which figlet &>/dev/null && figlet "$OTP" && return
+    which cowsay &>/dev/null && cowsay "$OTP" && echo && return
+    echo "The authorization code is $OTP" && echo
+}
+
+# ============================================================================
+
+
+function die {
+    echo "Error: $@" >&2
+    exit 1
+}
+
+# Read SSH session details
+[ -z "$SSH_CONNECTION" ] && die "Can't read \$SSH_CONNECTION (not a SSH session?)"
+
+# Load settings
+[ -r /etc/zuul.conf ] && . /etc/zuul.conf
+
+# Figure out what authentication method the current SSH session used
+AUTHMETHOD=$(sudo /bin/cat /var/log/auth.log | \
+             sed -n 's|.*sshd.* Accepted \([^ ]\+\) for \([^ ]\+\) .* port \([0-9]\+\).*|\2 \3 \1|p' | \
+             grep $(echo "$SSH_CONNECTION" | cut -d" " -f2) | \
+             tail -n1 | \
+             cut -d" " -f3)
+[ -z "$AUTHMETHOD" ] && die "Can't determine authorization method"
+
+# Unless the user authenticated using a public key
+if [ "$AUTHMETHOD" != "publickey" ]; then
+    # ... create an one-time password
+    OTP=$(cat /dev/urandom | tr -dc "$CHARACTERS" | head -c$LENGTH)
+
+    # ... send it
+    notify_otp "$OTP"
+
+    # ... let the user enter it
+    printf "Authorization code: "
+    read INPUT
+
+    # ... and make sure it matches
+    if [ "$INPUT" != "$OTP" ]; then
+        die "Incorrect authorization code"
+    fi
+fi
+
+# As everything seems OK
+
+USH=$(awk -F: '$1 == "'$USER'" {print $7}' /etc/passwd)
+# ... if we got a command to execute, do so.
+[ -n "$SSH_ORIGINAL_COMMAND" ] && echo "$SSH_ORIGINAL_COMMAND" | exec $USH
+
+# Otherwise exec() the user's shell
+exec $USH
