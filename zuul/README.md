@@ -10,6 +10,24 @@ When a user has authenticated, the SSH server hands over the session to `zuul` u
 
 To determine what authentication method was used, zuul investigates `/var/log/auth.log`. Unfortunately, `zuul` runs as `$USER`, so `$USER` must be able to read this file. The least bad way I've found to allow this, is to give `$USER` password-less sudo rights to `/bin/cat /var/log/auth.log`. This effectively means that users can read this log file, despite it not being readable in the file system. If this is unacceptable to you, zuul is not what you're looking for. If you know of a better way to determine what authentication method was used, please let me know at <halhen@k2h.se>.
 
+# FAQ
+
+## Aren't these things better handled by a PAM module?
+
+You could get the same results with a PAM module. However, then I would have moved away from a-quick-bash-script-on-a-weekend-afternoon-for-the-heck-of-it.
+
+## Giving everyone read access to `/var/log/auth.log`?! Really?
+
+All machines where I use zuul are either personal or shared with trusted people whom have sudo rights anyways. I'd say using this is a net gain in security from using password-only authentication. zuul is obviously not an enterprise thing.
+
+## Why e-mail?
+
+It lets me receive the OTP from anywhere, as long as I can read my email. I'm not locked out if I forgot my phone at home. E-mail is my choice. You can configure your own.
+
+## Any alternatives?
+
+* [Google Authenticator](http://code.google.com/p/google-authenticator/) is a PAM module which, together with a mobile phone app, gives for example Time-based One Time Passwords.
+
 # Dependencies
 
 * OpenSSH
