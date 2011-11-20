@@ -4,6 +4,7 @@ This is a place where I store scripts and write-ups on technology. Some things a
 
 # News
 
+* 2011-11-20: [imapauth](https://www.github.com/halhen/techsperiments/tree/master/imapauth), HTTP authentication against an IMAP server for MoinMoin
 * 2011-10-09: [zuul](https://www.github.com/halhen/techsperiments/tree/master/zuul), a script to log in via ssh using either publickey or two-factor authentication, added
 
 # License
