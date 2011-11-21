@@ -10,7 +10,7 @@ A quick [python script](imapauth) later, I got it working. To not hammer the IMA
 
 # Installation
 
-Copy `imapauth` to e.g. `/usr/local/bin` and edit the `SERVER`, `PORT` and `SSL` variables as needed. `chmod` it appropriately, e.g. `chmod 755`.
+Copy `imapauth` to e.g. `/usr/local/bin` and edit the `SERVER`, `PORT` and `SSL` variables as needed. If you need to authorize the user, e.g. when using a generic third party IMAP provider like gmail, add this a few sections down (see comments). `chmod` it appropriately, e.g. `chmod 755`.
 
 In your [mywiki.py MoinMoin config file](http://moinmo.in/HelpOnAuthentication#given_by_REMOTE_USER_environment_variable), set `auth = [GivenAuth(autocreate=True)]`. The user will be created and logged in with whatever user name (s)he uses to log in to the IMAP server. On some system, this is only the username, in others it may be the full email address. If you know how to set up your mail client, you know which it is.
 
@@ -52,4 +52,4 @@ For Apache:
 
 # Closing
 
-While writing this summary, I stumbled on [checkpasswd-imap](http://www.namazustudios.com/blog/checkpasswd-imap-a-mod_authnz_external-style-password-checker/) which seem to do the same and more. If your want something more than a quick hack, you should probably check that out.
+While writing this summary, I stumbled on [checkpasswd-imap](http://www.namazustudios.com/blog/checkpasswd-imap-a-mod_authnz_external-style-password-checker/) which seem to do the same and more. If your want something more than a quick hack, you should probably check that out. There's also a [pam-imap](http://pam-imap.sourceforge.net/) if that's what you're looking for.

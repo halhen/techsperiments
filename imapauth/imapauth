@@ -53,6 +53,12 @@ pw = sys.stdin.readline().strip()
 usercache=CACHETEMPLATE + user
 cached = ''
 
+# Optionally check that the user is authorized
+# This can be used to e.g. check the domain name, test against a list or a
+# regex. Example:
+# if not user.endswith(@ourdomain.com):
+#     sys.exit(1)
+
 # Check if we have a valid cache
 try:
     with open(usercache, "r") as cache:
